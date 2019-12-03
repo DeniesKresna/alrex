@@ -15,4 +15,4 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-$router->get('candle/test', 'CandleController@test');
+$router->get('candle/latest/fiveminutes/signals/{pair_id}', 'CandleController@getFiveMinutesSignals');

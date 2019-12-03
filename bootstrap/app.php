@@ -67,6 +67,14 @@ $app->singleton(
 
 /*
 |--------------------------------------------------------------------------
+| Register Class Alias
+|--------------------------------------------------------------------------
+*/
+
+class_alias('Ixudra\Curl\Facades\Curl', 'Curl');
+
+/*
+|--------------------------------------------------------------------------
 | Register Service Providers
 |--------------------------------------------------------------------------
 |
@@ -76,9 +84,10 @@ $app->singleton(
 |
 */
 
-$app->register(App\Providers\AppServiceProvider::class);
+//$app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
+$app->register(Ixudra\Curl\CurlServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
