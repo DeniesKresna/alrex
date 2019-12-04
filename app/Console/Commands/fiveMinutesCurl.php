@@ -45,19 +45,20 @@ class FiveMinutesCurl extends Command
     {
         try {
             $fcsapikey = env('FCSAPI_KEY','wow');
-            $waktuawal = new DateTime('18:00');
-            $waktuakhir = new DateTime('22:00');
+            $waktuawal = new DateTime('19:55');
+            $waktuakhir = new DateTime('22:01');
             $waktusekarang = new Datetime("now");
-            $ignoredtime = '12:55';
+            $ignoredtime = '19:55';
             $pair_id = $this->argument('pair_id');
-            if($waktusekarang <= $waktuakhir && $waktusekarang >= $waktuawal){
+            if($waktusekarang <= $waktuakhir && $waktusekarang >= $waktuawal && $waktusekarang->format('N') < 6){
                 $symbol = Symbol::findOrFail($pair_id)->first();
 
                 //get latest candle
                 $response = json_decode(Curl::to('https://fcsapi.com/api/forex/candle?id='.$pair_id.'&period=5m&access_key='.$fcsapikey)->get());
                 //$response = json_decode(Curl::to('http://localhost/share/candletest.json')->get());
                 $candle = $response->response;
-                $candleexist = Candle::where('symbol_id',$pair_id)->where('candle_time',$candle[0]->tm)->first();
+                $ct = date("Y-m-d H:i:s", strtotime('+7 hours',strtotime($candle[0]->tm)));
+                $candleexist = Candle::where('symbol_id',$pair_id)->where('candle_time',$ct)->first();
                 if(!$candleexist){
                     $last_candle = Candle::orderBy('id','desc')->first();
                     $candle_new = new Candle;
@@ -66,7 +67,7 @@ class FiveMinutesCurl extends Command
                     $candle_new->candle_low = $candle[0]->l;
                     $candle_new->candle_close = $candle[0]->c;
                     $candle_new->symbol_id = $symbol->id;
-                    $candle_new->candle_time = $candle[0]->tm;
+                    $candle_new->candle_time = $ct;
 
                     if(substr($candle_new->candle_time,11,5) == $ignoredtime){
                         $candle_new->candle_from_before = null;
@@ -129,9 +130,8 @@ class FiveMinutesCurl extends Command
                     else{
                         $signal_new = $signalexist;
                     }
-                    $this->info("Candle added successfully");
                 }
-                $this->info("Candle added but no signal this time");
+                $this->info("Candle added successfully");
             }
             else
                 $this->info("No Candle on this time");

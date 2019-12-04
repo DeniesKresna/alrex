@@ -122,7 +122,7 @@ class UsersTableSeeder extends Seeder
           'candle_high'=>'0.00',
           'candle_low'=>'0.00',
           'candle_close'=>'0.00',
-          'candle_time'=>'2019-01-01 12:55:00',
+          'candle_time'=>'2019-01-01 19:55:00',
           'candle_from_before'=>null,
           'created_at' => date('Y-m-d H:i:s'),
           'updated_at' => date('Y-m-d H:i:s')

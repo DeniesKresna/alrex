@@ -15,4 +15,8 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-$router->get('candle/latest/fiveminutes/signals/{pair_id}', 'CandleController@getFiveMinutesSignals');
+$router->get('candle/latest/fiveminutes/signals/{limit}/{pair_id}', 'CandleController@getFiveMinutesData');
+
+$router->group(['middleware' => 'login'], function() use ($router) {
+	$router->get('/auth/session', 'AuthController@session');
+});
