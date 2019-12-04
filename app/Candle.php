@@ -11,5 +11,8 @@ class Candle extends Model
         'symbol_id','candle_open','candle_high','candle_low','candle_close','candle_time'
     ];
 
+    public function signal(){
+    	return $this->hasOne('App\Signal');
+    }
     //public $timestamps = false;
 }

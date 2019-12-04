@@ -21,6 +21,7 @@ class CreateCandles extends Migration
             $table->string('candle_low',10);
             $table->string('candle_close',10);
             $table->datetime('candle_time');
+            $table->string('candle_from_before',10)->nullable();
             $table->timestamps();
         });
     }
