@@ -11,8 +11,8 @@
 |
 */
 
-$router->get('/', function () use ($router) {
-    return $router->app->version();
+$router->get('/', function () {
+    return view('app');
 });
 
 $router->get('candle/latest/fiveminutes/signals/{limit}/{pair_id}', 'CandleController@getFiveMinutesData');

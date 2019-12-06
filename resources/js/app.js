@@ -11,6 +11,7 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import vuetify from './vuetify'
 import DatetimePicker from 'vuetify-datetime-picker'
+import JsonExcel from 'vue-json-excel'
     
 window.Vue = require('vue');
 //require('vue-axios-interceptors');
@@ -33,6 +34,7 @@ const router = new VueRouter({
   routes: routes
 })
 
+Vue.component('downloadExcel', JsonExcel);
 Vue.component('pagination', require('laravel-vue-pagination'));
 
 import interceptorsSetup from './interceptors'

@@ -28,6 +28,7 @@
         "laravel-vue-pagination": "^2.3.0",
         "vee-validate": "^2.2.13",
         "vue-axios-interceptors": "^0.3.0",
+        "vue-json-excel": "^0.2.98",
         "vue-loading-overlay": "^3.2.0",
         "vue-moments-ago": "^0.2.0",
         "vue-router": "^3.0.7",

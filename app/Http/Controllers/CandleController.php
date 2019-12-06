@@ -33,7 +33,7 @@ class CandleController extends Controller
     {
     		$pair_id = 1;
             $fcsapikey = env('FCSAPI_KEY','wow');
-            $waktuawal = new DateTime('19:57');
+            $waktuawal = new DateTime('19:00');
             $waktuakhir = new DateTime('22:04');
             $waktusekarang = new Datetime("now");
             $ignoredtime = '19:55';
@@ -94,7 +94,10 @@ class CandleController extends Controller
                         $signal_new->signal_macd12_26 = $signal->MACD12_26->s;
                         $signal_new->signal_williamsr = $signal->WilliamsR->s;
                         $signal_new->signal_cci14 = $signal->CCI14->s;
-                        $signal_new->signal_atr14 = $signal->ATR14->s;
+                        if($signal->ATR14->s == '')
+                        	$signal_new->signal_atr14 = 'non';
+                        else
+                        	$signal_new->signal_atr14 = $signal->ATR14->s;
                         $signal_new->signal_ultimateoscillator = $signal->UltimateOscillator->s;
                         $signal_new->signal_roc = $signal->ROC->s;
 
