@@ -45,8 +45,8 @@ class FiveMinutesCurl extends Command
     {
         try {
             $fcsapikey = env('FCSAPI_KEY','wow');
-            $waktuawal = new DateTime('19:55');
-            $waktuakhir = new DateTime('22:01');
+            $waktuawal = new DateTime('00:00');
+            $waktuakhir = new DateTime('23:59');
             $waktusekarang = new Datetime("now");
             $ignoredtime = '19:55';
             $pair_id = $this->argument('pair_id');
