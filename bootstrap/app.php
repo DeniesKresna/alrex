@@ -57,9 +57,9 @@ $app->singleton(
 |
 */
 
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
+$app->middleware([
+     App\Http\Middleware\CorsMiddleware::class
+]);
 
 $app->routeMiddleware([
      'auth' => App\Http\Middleware\Authenticate::class,
@@ -88,6 +88,7 @@ class_alias('Ixudra\Curl\Facades\Curl', 'Curl');
 //$app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
+$app->register(App\Providers\CatchAllOptionsRequestsProvider::class);
 $app->register(Ixudra\Curl\CurlServiceProvider::class);
 
 /*

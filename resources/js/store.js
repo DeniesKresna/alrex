@@ -7,7 +7,9 @@ const state = {
 	},
 	apiUrl: 'http://localhost/alrex/public/',
 	overlay: false,
-	isLoading: false
+	isLoading: false,
+	pair_id: 1,
+	limit: 300
 }
 const getters = {	
 	username: state => state.session.name,

@@ -11,12 +11,13 @@
 |
 */
 
-$router->get('/', function () {
+$router->get('/', function () use ($router) {
     return view('app');
 });
 
-$router->get('candle/latest/fiveminutes/signals/{limit}/{pair_id}', 'CandleController@getFiveMinutesData');
+$router->get('/candle/latest/fiveminutes/signals/{limit}/{pair_id}', 'CandleController@getFiveMinutesData');
 $router->get('candle/latest/fiveminutes/candle/eurusd', 'CandleController@curlFiveMinutesCandleEurUsd');
+$router->get('/getHistoryAndLastSignal/{limit}/{pair_id}','CandleController@getHistoryAndLastSignal');
 
 $router->group(['middleware' => 'login'], function() use ($router) {
 	$router->get('/auth/session', 'AuthController@session');

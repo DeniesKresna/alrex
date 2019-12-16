@@ -29,11 +29,28 @@ class CandleController extends Controller
         return response()->json(['candles'=>$candles]);
     }
 
+    public function getHistoryAndLastSignal($limit, $pair_id){
+        $fcsapikey = env('FCSAPI_KEY','wow');
+        $histories = DB::table('signals as s')->join('candles as c','c.id','=','s.candle_id')
+                ->where('c.symbol_id',$pair_id)
+                ->select("s.*","c.candle_time","c.candle_from_before")->orderBy('c.id','desc')->take($limit)->get();
+        $responseIndicator = json_decode(Curl::to('https://fcsapi.com/api/forex/indicators?id='.$pair_id.'&period=5m&access_key='.$fcsapikey)->get());
+                    //$signal = $response->response->indicators;
+
+        $responseMa = json_decode(Curl::to('https://fcsapi.com/api/forex/ma_avg?id='.$pair_id.'&period=5m&access_key='.$fcsapikey)->get());
+        if($responseIndicator && $responseMa){
+            $lastSignal = array('responseIndicator'=>$responseIndicator, 'responseMa'=>$responseMa, 'histories'=>$histories);
+            return response()->json(["lastSignal"=>$lastSignal, "message"=>"Berhasil"]);
+        }
+        else
+            return response()->json(['message'=>"Gagal"]);
+    }
+
     public function curlFiveMinutesCandleEurUsd()
     {
-    		$pair_id = 1;
+            $pair_id = 1;
             $fcsapikey = env('FCSAPI_KEY','wow');
-            $waktuawal = new DateTime('19:00');
+            $waktuawal = new DateTime('19:57');
             $waktuakhir = new DateTime('22:04');
             $waktusekarang = new Datetime("now");
             $ignoredtime = '19:55';
@@ -95,9 +112,9 @@ class CandleController extends Controller
                         $signal_new->signal_williamsr = $signal->WilliamsR->s;
                         $signal_new->signal_cci14 = $signal->CCI14->s;
                         if($signal->ATR14->s == '')
-                        	$signal_new->signal_atr14 = 'non';
+                            $signal_new->signal_atr14 = 'non';
                         else
-                        	$signal_new->signal_atr14 = $signal->ATR14->s;
+                            $signal_new->signal_atr14 = $signal->ATR14->s;
                         $signal_new->signal_ultimateoscillator = $signal->UltimateOscillator->s;
                         $signal_new->signal_roc = $signal->ROC->s;
 
@@ -106,14 +123,19 @@ class CandleController extends Controller
                         $signal_new->signal_sma20 = $ma->SMA->MA20->s;
                         $signal_new->signal_sma50 = $ma->SMA->MA50->s;
                         $signal_new->signal_sma100 = $ma->SMA->MA100->s;
-                        $signal_new->signal_sma200 = $ma->SMA->MA200->s;
+                        if($ma->SMA->MA200->s)
+                            $signal_new->signal_sma200 = $ma->SMA->MA200->s;
+                        else
+                            $signal_new->signal_sma200 = "non";
                         $signal_new->signal_ema5 = $ma->EMA->MA5->s;
                         $signal_new->signal_ema10 = $ma->EMA->MA10->s;
                         $signal_new->signal_ema20 = $ma->EMA->MA20->s;
                         $signal_new->signal_ema50 = $ma->EMA->MA50->s;
                         $signal_new->signal_ema100 = $ma->EMA->MA100->s;
-                        $signal_new->signal_ema200 = $ma->EMA->MA200->s;
-
+                        if($ma->EMA->MA200->s)
+                            $signal_new->signal_ema200 = $ma->EMA->MA200->s;
+                        else
+                            $signal_new->signal_ema200 = "non";
                         $signal_new->candle_id = $candle_new->id;
                         $signal_new->save();
                     }
