@@ -14,6 +14,8 @@
 					  <v-btn class="ma-2 green" tile outlined v-else @click="toggleRun">
 					      <v-icon>mdi-play</v-icon>
 					  </v-btn>
+					  <span class="title" v-if="predictResult!=''">The Prediction is : <strong>{{predictResult.toUpperCase()}}</strong></span>
+					  <p v-if="updateTime != ''">Updated At : {{updateTime}}</p>
 			      </v-expansion-panel-content>
 			    </v-expansion-panel>
 			</v-expansion-panels>
@@ -26,50 +28,30 @@ export default{
 	data(){
 		return{
 			is_run: false,
-			predictResult: ""
+			predictResult: "",
+			updateTime: ''
 		}
 	},
 	mounted(){
 	},
 	methods: {
 		toggleRun: function(){
-			this.is_run = !this.is_run;
+			//this.is_run = !this.is_run;
 			this.countNaiveBayes();
 		},
 		countNaiveBayes: function(){
-			//axios.get(this.$store.state.apiUrl + '/getHistoryAndLastSignal/'+this.$store.state.limit+'/'+this.$store.state.pair_id).then(response=>{
-			axios.get("http://localhost/share/hasil.json").then(response=>{
-				var indicators = response.data.lastSignal.responseIndicator.response.indicators;
-				var sma = response.data.lastSignal.responseMa.response.ma_avg.SMA;
-				var ema = response.data.lastSignal.responseMa.response.ma_avg.EMA;
+			axios.get(this.$store.state.apiUrl + '/getHistoryAndLastSignal/'+this.$store.state.limit+'/'+this.$store.state.pair_id).then(response=>{
+			//axios.get("http://localhost/share/hasil.json").then(response=>{
+				var indicators = response.data.lastSignal.responseIndicator
 				var histories = response.data.lastSignal.histories;
 
 				var countTemp = 0.00;
-				var p_kelas_up, p_kelas_down, p_kelas_neutral = 1.00;
-				var n_kelas_up, n_kelas_down, n_kelas_neutral = 1.00;
-				var p_rsi14_kelas_up, p_rsi14_kelas_down, p_rsi14_kelas_neutral,
-					p_stoch9_6_kelas_up, p_stoch9_6_kelas_down, p_stoch9_6_kelas_neutral,
-					p_stochrsi14_kelas_up, p_stochrsi14_kelas_down, p_stochrsi14_kelas_neutral,
-					p_macd12_26_kelas_up, p_macd12_26_kelas_down, p_macd12_26_kelas_neutral, 
-					p_williamsr_kelas_up, p_williamsr_kelas_down, p_williamsr_kelas_neutral,
-					p_cci14_kelas_up, p_cci14_kelas_down, p_cci14_kelas_neutral,
-					p_atr14_kelas_up, p_atr14_kelas_down, p_atr14_kelas_neutral,
-					p_ultimateoscillator_kelas_up, p_ultimateoscillator_kelas_down, p_ultimateoscillator_kelas_neutral,
-					p_roc_kelas_up, p_roc_kelas_down, p_roc_kelas_neutral,
-					p_sma5_kelas_up, p_sma5_kelas_down, p_sma5_kelas_neutral,
-					p_sma10_kelas_up, p_sma10_kelas_down, p_sma10_kelas_neutral,
-					p_sma20_kelas_up, p_sma20_kelas_down, p_sma20_kelas_neutral,
-					p_sma50_kelas_up, p_sma50_kelas_down, p_sma50_kelas_neutral,
-					p_sma100_kelas_up, p_sma100_kelas_down, p_sma100_kelas_neutral,
-					p_sma200_kelas_up, p_sma200_kelas_down, p_sma200_kelas_neutral,
-					p_ema5_kelas_up, p_ema5_kelas_down, p_ema5_kelas_neutral,
-					p_ema10_kelas_up, p_ema10_kelas_down, p_ema10_kelas_neutral,
-					p_ema20_kelas_up, p_ema20_kelas_down, p_ema20_kelas_neutral,
-					p_ema50_kelas_up, p_ema50_kelas_down, p_ema50_kelas_neutral,
-					p_ema100_kelas_up, p_ema100_kelas_down, p_ema100_kelas_neutral,
-					p_ema200_kelas_up, p_ema200_kelas_down, p_ema200_kelas_neutral= 1.00
+				var p_kelas_up, p_kelas_down, p_kelas_neutral = 1;
+				var n_kelas_up, n_kelas_down, n_kelas_neutral = 1;
 				var totalHistories = histories.length;
-				var p_up, p_down, p_neutral = {};
+				var p_up = {};
+				var p_down = {};
+				var p_neutral = {};
 
 				n_kelas_up = histories.filter(x=> x.candle_from_before == 'up').length;
 				p_kelas_up = n_kelas_up/parseFloat(totalHistories);
@@ -79,116 +61,57 @@ export default{
 				p_kelas_neutral = n_kelas_neutral/parseFloat(totalHistories);
 				
 				for(let prop in histories[0]){
-					if(prop.includes("_signal")){
-						p_up[prop.replace("_signal")]
+					if(prop.includes("signal_")){
+						let freshprop = prop.replace("signal_","");
+						p_up[freshprop] = (histories.filter(x=> x.candle_from_before == 'up' && x[prop] == indicators[freshprop]['s']).length) / parseFloat(n_kelas_up);
+						//console.log("p_up["+freshprop+"]=" + p_up[freshprop]);
+						p_down[freshprop] = (histories.filter(x=> x.candle_from_before == 'down' && x[prop] == indicators[freshprop]['s']).length) / parseFloat(n_kelas_down);
+						//console.log("p_down["+freshprop+"]=" + p_down[freshprop]);
+						p_neutral[freshprop] = (histories.filter(x=> x.candle_from_before == 'neutral' && x[prop] == indicators[freshprop]['s']).length) / parseFloat(n_kelas_neutral);
+						//console.log("p_neutral["+freshprop+"]=" + p_neutral[freshprop]);
 					}
 				}
 
-				//rsi
-				p_rsi14_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_rsi14 == indicators.RSI14.s).length) / n_kelas_up;
-				p_rsi14_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_rsi14 == indicators.RSI14.s).length) / n_kelas_down;
-				p_rsi14_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_rsi14 == indicators.RSI14.s).length) / n_kelas_neutral;
+				//console.log(p_down);
 
-				//stoch9_6
-				p_stoch9_6_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_stoch9_6 == indicators.STOCH9_6.s).length) / n_kelas_up;
-				p_stoch9_6_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_stoch9_6 == indicators.STOCH9_6.s).length) / n_kelas_down;
-				p_stoch9_6_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_stoch9_6 == indicators.STOCH9_6.s).length) / n_kelas_neutral;
+				var p_kelas_total = {
+					up: 1.0000,
+					down: 1.0000,
+					neutral: 1.0000
+				};
 
-				console.log("p_stoch9_6 = " + p_stoch9_6_kelas_down);
-				//stochrsi14
-				p_stochrsi14_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_stochrsi14 == indicators.STOCHRSI14.s).length) / n_kelas_up;
-				p_stochrsi14_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_stochrsi14 == indicators.STOCHRSI14.s).length) / n_kelas_down;
-				p_stochrsi14_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_stochrsi14 == indicators.STOCHRSI14.s).length) / n_kelas_neutral;
+				for(let it in p_up){
+					console.log("p_up["+it+"] = "+p_up[it]+" * "+p_kelas_total.up);
+					p_kelas_total.up = p_up[it] * (p_kelas_total.up); 
+					console.log(p_kelas_total.up + " ok");
 
-				//macd12_26
-				p_macd12_26_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_macd12_26 == indicators.MACD12_26.s).length) / n_kelas_up;
-				p_macd12_26_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_macd12_26 == indicators.MACD12_26.s).length) / n_kelas_down;
-				p_macd12_26_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_macd12_26 == indicators.MACD12_26.s).length) / n_kelas_neutral;
+				}
+				for(let it in p_down){
+					console.log("p_down["+it+"] = "+p_down[it]+" * "+p_kelas_total.down);
+					p_kelas_total.down *= p_down[it]; 
+					console.log(p_kelas_total.down + " ok");
+				}
+				for(let it in p_neutral){
+					console.log("p_neutral["+it+"] = "+p_neutral[it]+" * "+p_kelas_total.neutral);
+					p_kelas_total.neutral *= p_neutral[it]; 
+					console.log(p_kelas_total.neutral + " ok");
+				}
 
-				//williamsr
-				p_williamsr_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_williamsr == indicators.WilliamsR.s).length) / n_kelas_up;
-				p_williamsr_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_williamsr == indicators.WilliamsR.s).length) / n_kelas_down;
-				p_williamsr_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_williamsr == indicators.WilliamsR.s).length) / n_kelas_neutral;
+				p_kelas_total.up = p_kelas_total.up*10000000000;
+				p_kelas_total.down = p_kelas_total.down*10000000000;
+				p_kelas_total.neutral = p_kelas_total.neutral*10000000000;
 
-				//cci14
-				p_cci14_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_cci14 == indicators.CCI14.s).length) / n_kelas_up;
-				p_cci14_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_cci14 == indicators.CCI14.s).length) / n_kelas_down;
-				p_cci14_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_cci14 == indicators.CCI14.s).length) / n_kelas_neutral;
+				console.log("p_kelas_up_total : " + p_kelas_total.up);
+				console.log("p_kelas_down_total : " + p_kelas_total.down);
+				console.log("p_kelas_neutral_total : " + p_kelas_total.neutral);
 
-				//atr14
-				p_atr14_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_atr14 == indicators.ATR14.s).length) / n_kelas_up;
-				p_atr14_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_atr14 == indicators.ATR14.s).length) / n_kelas_down;
-				p_atr14_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_atr14 == indicators.ATR14.s).length) / n_kelas_neutral;
-
-				//ultimateoscillator
-				p_ultimateoscillator_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_ultimateoscillator == indicators.UltimateOscillator.s).length) / n_kelas_up;
-				p_ultimateoscillator_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_ultimateoscillator == indicators.UltimateOscillator.s).length) / n_kelas_down;
-				p_ultimateoscillator_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_ultimateoscillator == indicators.UltimateOscillator.s).length) / n_kelas_neutral;
-
-				//roc
-				p_roc_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_roc == indicators.ROC.s).length) / n_kelas_up;
-				p_roc_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_roc == indicators.ROC.s).length) / n_kelas_down;
-				p_roc_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_roc == indicators.ROC.s).length) / n_kelas_neutral;
-
-				//sma5
-				p_sma5_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_sma5 == sma.MA5.s).length) / n_kelas_up;
-				p_sma5_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_sma5 == sma.MA5.s).length) / n_kelas_down;
-				p_sma5_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_sma5 == sma.MA5.s).length) / n_kelas_neutral;
-
-				//sma10
-				p_sma10_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_sma10 == sma.MA10.s).length) / n_kelas_up;
-				p_sma10_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_sma10 == sma.MA10.s).length) / n_kelas_down;
-				p_sma10_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_sma10 == sma.MA10.s).length) / n_kelas_neutral;
-
-				//sma20
-				p_sma20_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_sma20 == sma.MA20.s).length) / n_kelas_up;
-				p_sma20_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_sma20 == sma.MA20.s).length) / n_kelas_down;
-				p_sma20_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_sma20 == sma.MA20.s).length) / n_kelas_neutral;
-
-				//sma50
-				p_sma50_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_sma50 == sma.MA50.s).length) / n_kelas_up;
-				p_sma50_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_sma50 == sma.MA50.s).length) / n_kelas_down;
-				p_sma50_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_sma50 == sma.MA50.s).length) / n_kelas_neutral;
-
-				//sma100
-				p_sma100_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_sma100 == sma.MA100.s).length) / n_kelas_up;
-				p_sma100_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_sma100 == sma.MA100.s).length) / n_kelas_down;
-				p_sma100_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_sma100 == sma.MA100.s).length) / n_kelas_neutral;
-
-				//sma200
-				p_sma200_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_sma200 == sma.MA200.s).length) / n_kelas_up;
-				p_sma200_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_sma200 == sma.MA200.s).length) / n_kelas_down;
-				p_sma200_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_sma200 == sma.MA200.s).length) / n_kelas_neutral;
-
-				//ema5
-				p_ema5_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_ema5 == ema.MA5.s).length) / n_kelas_up;
-				p_ema5_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_ema5 == ema.MA5.s).length) / n_kelas_down;
-				p_ema5_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_ema5 == ema.MA5.s).length) / n_kelas_neutral;
-
-				//ema10
-				p_ema10_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_ema10 == ema.MA10.s).length) / n_kelas_up;
-				p_ema10_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_ema10 == ema.MA10.s).length) / n_kelas_down;
-				p_ema10_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_ema10 == ema.MA10.s).length) / n_kelas_neutral;
-
-				//ema20
-				p_ema20_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_ema20 == ema.MA20.s).length) / n_kelas_up;
-				p_ema20_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_ema20 == ema.MA20.s).length) / n_kelas_down;
-				p_ema20_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_ema20 == ema.MA20.s).length) / n_kelas_neutral;
-
-				//ema50
-				p_ema50_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_ema50 == ema.MA50.s).length) / n_kelas_up;
-				p_ema50_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_ema50 == ema.MA50.s).length) / n_kelas_down;
-				p_ema50_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_ema50 == ema.MA50.s).length) / n_kelas_neutral;
-
-				//ema100
-				p_ema100_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_ema100 == ema.MA100.s).length) / n_kelas_up;
-				p_ema100_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_ema100 == ema.MA100.s).length) / n_kelas_down;
-				p_ema100_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_ema100 == ema.MA100.s).length) / n_kelas_neutral;
-
-				//ema200
-				p_ema200_kelas_up = (histories.filter(x=> x.candle_from_before == 'up' && x.signal_ema200 == ema.MA200.s).length) / n_kelas_up;
-				p_ema200_kelas_down = (histories.filter(x=> x.candle_from_before == 'down' && x.signal_ema200 == ema.MA200.s).length) / n_kelas_down;
-				p_ema200_kelas_neutral = (histories.filter(x=> x.candle_from_before == 'neutral' && x.signal_ema200 == ema.MA200.s).length) / n_kelas_neutral;
+				/*const max = data.reduce(function(prev, current) {
+				    return (prev.y > current.y) ? prev : current
+				})*/
+				var keysSorted = Object.keys(p_kelas_total).sort(function(a,b){return p_kelas_total[a]-p_kelas_total[b]});
+				console.log(keysSorted);
+				this.predictResult = keysSorted[0];
+				this.updateTime = new Date();
 			})
 		}
 	},

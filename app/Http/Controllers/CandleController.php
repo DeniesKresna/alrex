@@ -34,12 +34,23 @@ class CandleController extends Controller
         $histories = DB::table('signals as s')->join('candles as c','c.id','=','s.candle_id')
                 ->where('c.symbol_id',$pair_id)
                 ->select("s.*","c.candle_time","c.candle_from_before")->orderBy('c.id','desc')->take($limit)->get();
-        $responseIndicator = json_decode(Curl::to('https://fcsapi.com/api/forex/indicators?id='.$pair_id.'&period=5m&access_key='.$fcsapikey)->get());
-                    //$signal = $response->response->indicators;
+        $responseIndicator = json_decode(Curl::to('https://fcsapi.com/api/forex/indicators?id='.$pair_id.'&period=5m&access_key='.$fcsapikey)->get(), TRUE);
 
-        $responseMa = json_decode(Curl::to('https://fcsapi.com/api/forex/ma_avg?id='.$pair_id.'&period=5m&access_key='.$fcsapikey)->get());
+        $responseMa = json_decode(Curl::to('https://fcsapi.com/api/forex/ma_avg?id='.$pair_id.'&period=5m&access_key='.$fcsapikey)->get(), TRUE);
+
+        $sma = $responseMa['response']['ma_avg']['SMA'];
+        $ema = $responseMa['response']['ma_avg']['EMA'];
+
+        foreach($sma as $key => $value){
+            $responseIndicator['response']['indicators']['s'.$key] = $value;
+        }
+
+        foreach($ema as $key => $value){
+            $responseIndicator['response']['indicators']['e'.$key] = $value;
+        }
+
         if($responseIndicator && $responseMa){
-            $lastSignal = array('responseIndicator'=>$responseIndicator, 'responseMa'=>$responseMa, 'histories'=>$histories);
+            $lastSignal = array('responseIndicator'=>array_change_key_case($responseIndicator['response']['indicators'], CASE_LOWER), 'histories'=>$histories);
             return response()->json(["lastSignal"=>$lastSignal, "message"=>"Berhasil"]);
         }
         else
