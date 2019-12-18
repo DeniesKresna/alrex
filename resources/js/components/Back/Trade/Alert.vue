@@ -5,7 +5,7 @@
 			<v-expansion-panels>
 			    <v-expansion-panel>
 			      <v-expansion-panel-header>
-			      	Run Auto Predict
+			      	Predict
 				  </v-expansion-panel-header>
 			      <v-expansion-panel-content>
 			      	  <v-btn class="ma-2 red" tile outlined v-if="is_run" @click="toggleRun">
@@ -15,6 +15,7 @@
 					      <v-icon>mdi-play</v-icon>
 					  </v-btn>
 					  <span class="title" v-if="predictResult!=''">The Prediction is : <strong>{{predictResult.toUpperCase()}}</strong></span>
+					  <span class="title" v-else><strong>UNPREDICTABLE DATA</strong></span>
 					  <p v-if="updateTime != ''">Updated At : {{updateTime}}</p>
 			      </v-expansion-panel-content>
 			    </v-expansion-panel>
@@ -28,7 +29,7 @@ export default{
 	data(){
 		return{
 			is_run: false,
-			predictResult: "",
+			predictResult: "please klik the button",
 			updateTime: ''
 		}
 	},
@@ -81,36 +82,49 @@ export default{
 				};
 
 				for(let it in p_up){
-					console.log("p_up["+it+"] = "+p_up[it]+" * "+p_kelas_total.up);
-					p_kelas_total.up = p_up[it] * (p_kelas_total.up); 
-					console.log(p_kelas_total.up + " ok");
-
+					//console.log("p_up["+it+"] = "+p_up[it]+" * "+p_kelas_total.up);
+					p_kelas_total.up = p_up[it] * (p_kelas_total.up) * 10; 
+					//console.log(p_kelas_total.up + " ok");
 				}
 				for(let it in p_down){
-					console.log("p_down["+it+"] = "+p_down[it]+" * "+p_kelas_total.down);
-					p_kelas_total.down *= p_down[it]; 
-					console.log(p_kelas_total.down + " ok");
+					//console.log("p_down["+it+"] = "+p_down[it]+" * "+p_kelas_total.down);
+					p_kelas_total.down = p_down[it] * (p_kelas_total.down) * 10; 
+					//console.log(p_kelas_total.down + " ok");
 				}
 				for(let it in p_neutral){
-					console.log("p_neutral["+it+"] = "+p_neutral[it]+" * "+p_kelas_total.neutral);
-					p_kelas_total.neutral *= p_neutral[it]; 
-					console.log(p_kelas_total.neutral + " ok");
+					//console.log("p_neutral["+it+"] = "+p_neutral[it]+" * "+p_kelas_total.neutral);
+					p_kelas_total.neutral = p_neutral[it] * (p_kelas_total.neutral) * 10; 
+					//console.log(p_kelas_total.neutral + " ok");
 				}
-
-				p_kelas_total.up = p_kelas_total.up*10000000000;
-				p_kelas_total.down = p_kelas_total.down*10000000000;
-				p_kelas_total.neutral = p_kelas_total.neutral*10000000000;
-
+/*
+				console.log("p_up = " + Object.keys(p_up).length);
+				console.log("p_down = " + Object.keys(p_down).length);
+				console.log("p_neutral = " + Object.keys(p_neutral).length);*/
+				p_kelas_total.up = p_kelas_total.up.toFixed(2)*p_kelas_up;
+				p_kelas_total.down = p_kelas_total.down.toFixed(2)*p_kelas_down;
+				p_kelas_total.neutral = p_kelas_total.neutral.toFixed(2)*p_kelas_neutral;
+/*
 				console.log("p_kelas_up_total : " + p_kelas_total.up);
 				console.log("p_kelas_down_total : " + p_kelas_total.down);
-				console.log("p_kelas_neutral_total : " + p_kelas_total.neutral);
+				console.log("p_kelas_neutral_total : " + p_kelas_total.neutral);*/
 
 				/*const max = data.reduce(function(prev, current) {
 				    return (prev.y > current.y) ? prev : current
 				})*/
-				var keysSorted = Object.keys(p_kelas_total).sort(function(a,b){return p_kelas_total[a]-p_kelas_total[b]});
-				console.log(keysSorted);
-				this.predictResult = keysSorted[0];
+				var crnt = 0;
+				var listKey = Object.keys(p_kelas_total);
+				this.predictResult = "";
+				//console.log(listKey);
+				for(var i in listKey){
+					var pr = listKey[i];
+					//console.log(pr);
+					if(p_kelas_total[pr] > crnt){
+						//console.log(p_kelas_total[pr] + " (" + pr + ") > " + crnt)
+						crnt = p_kelas_total[pr];
+						this.predictResult = pr;
+					}
+				}
+
 				this.updateTime = new Date();
 			})
 		}

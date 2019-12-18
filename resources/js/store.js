@@ -9,7 +9,7 @@ const state = {
 	overlay: false,
 	isLoading: false,
 	pair_id: 1,
-	limit: 100
+	limit: 500
 }
 const getters = {	
 	username: state => state.session.name,
